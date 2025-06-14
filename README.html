@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Features</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <p><img src="file:///d:\Coding\Repositories\ScheduleOne.HonestMainMenu\Resources\Icon.png" alt="Honest Main Menu"></p>
+<p><a href="https://www.scheduleonegame.com/"><img src="https://img.shields.io/badge/Game-Schedule_I-507437?labelColor=39482D" alt="Game"></a>
+<a href="https://melonwiki.xyz/#/"><img src="https://img.shields.io/badge/MelonLoader-v0.7.x-79F863?labelColor=FA3768" alt="MelonLoader"></a>
+<a href="https://github.com/RoachxD/ScheduleOne.HonestMainMenu/releases/latest"><img src="https://img.shields.io/badge/Version-1.0.0-70885B?labelColor=4C4C27" alt="Version"></a>
+<a href="LICENSE.html"><img src="https://img.shields.io/badge/License-MIT-849670?labelColor=4C4C27" alt="License"></a></p>
+<p>Ever felt like the main menu in Schedule I was... well, not entirely straight with you? Like it was holding back, maybe even telling a few white lies? You're not alone.</p>
+<p>Introducing <strong>Honest Main Menu</strong>, a mod forged in the fires of mild annoyance and a desire for a menu that just tells it like it is. The main culprits for this mod's existence:</p>
+<ul>
+<li>That &quot;Continue&quot; button? More like &quot;Continue to a screen where you pick a save, which is basically Load Game, isn't it?&quot;. Deceptive.</li>
+<li>The back button prompt whispering sweet nothings about using your Right Mouse Button (RMB), when only the trusty Escape key actually did the job in the main menu. Misleading.</li>
+<li>And the grand finale: watching the main menu scene load itself not once, not twice, but <em>thrice</em> when you just wanted to quit to menu. Inefficient. (Seriously, the &quot;Menu&quot; scene would load twice on startup and then <em>again</em> three times when exiting a game session. What gives?)</li>
+</ul>
+<p>This mod slaps some honesty into the main menu, offering a true &quot;Continue&quot; experience, clarifying the &quot;Load Game&quot; process, and attempting to curb the menu's enthusiasm for redundant self-loading.</p>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>True &quot;Continue&quot; Functionality:</strong> Adds a new, dedicated &quot;Continue&quot; button that <em>actually</em> loads your most recently played game session. Revolutionary, I know.</li>
+<li><strong>Repurposed &quot;Load Game&quot; Button:</strong> The original &quot;Continue&quot; button (the one that masqueraded as a &quot;Load Game&quot; button) is now properly labeled &quot;Load Game&quot;. It still opens the save selection screen, but at least it's honest about it.</li>
+<li><strong>Updated Load Screen Title:</strong> The title of the screen you get when you click &quot;Load Game&quot; now says &quot;Load Game&quot; instead of &quot;Continue&quot;. Because clarity is kindness.</li>
+<li><strong>Corrected UI Prompts:</strong> The misleading &quot;RMB&quot; indicator from the main menu's back button prompt has been banished. Escape key is your only friend here.</li>
+<li><strong>Scene Load Optimization (<a href="Patches/SceneManagerLoadScenePatch.cs"><code>Patches.SceneManagerLoadScenePatch</code></a>):</strong> Includes a Harmony patch for <code>SceneManager.LoadScene</code>. This bad boy acts as a bouncer, preventing the game from loading the same scene multiple times consecutively. While the <em>real</em> party crasher seems to be how the game handles network disconnections and related events, fixing that is a whole other can of worms. This patch just mitigates the symptom of your menu UI getting rebuilt more times than a LEGO castle in a hurricane.</li>
+<li><strong>Dual Build Support:</strong> Comes in both Il2Cpp and Mono flavors, because options are nice.</li>
+</ul>
+<h2 id="how-it-works">How It Works</h2>
+<p><strong>Honest Main Menu</strong> gets to work in two main stages:</p>
+<h3 id="on-mod-initialization-taming-the-scene-loader">On Mod Initialization (Taming the Scene Loader)</h3>
+<ul>
+<li><strong>Streamlined Menu Loading:</strong> Right off the bat, the mod applies the <a href="Patches/SceneManagerLoadScenePatch.cs"><code>Patches.SceneManagerLoadScenePatch</code></a>. This helps prevent the main menu scene from reloading unnecessarily, aiming for a smoother startup and a less jarring transition when you bail from a game session back to the menu.</li>
+</ul>
+<h3 id="on-main-menu-scene-load-the-honesty-makeover">On Main Menu Scene Load (The Honesty Makeover)</h3>
+<p>Once you actually <em>see</em> the main menu, the mod rolls up its sleeves:</p>
+<ol>
+<li><strong>Finds Menu Parts:</strong> It scans the existing menu, locating the buttons and text elements.</li>
+<li><strong>Creates and Updates Buttons:</strong>
+<ul>
+<li>A shiny new &quot;Continue&quot; button is conjured. Clicking this loads your latest save. No fuss, no muss.</li>
+<li>The game's original &quot;Continue&quot; button gets a new name and label: &quot;Load Game&quot;. It still takes you to the save list, but now it's upfront about it.</li>
+</ul>
+</li>
+<li><strong>Rearranges Buttons:</strong> The new &quot;Continue&quot; button takes the prime spot of the old one. The &quot;Load Game&quot; button (formerly &quot;Continue&quot;) is nudged down a bit, and other menu items shuffle politely to make space.</li>
+<li><strong>Clarifies Load Screen:</strong> If you click the &quot;Load Game&quot; button, the title of the screen that pops up is changed from &quot;Continue&quot; to &quot;Load Game&quot;. Consistency!</li>
+<li><strong>Fixes Back Button Info:</strong> The on-screen tip for the back button is corrected, removing the phantom RMB functionality.</li>
+<li><strong>Smart Button Activation:</strong> The new &quot;Continue&quot; and &quot;Load Game&quot; buttons will only be active if you actually have saved games. No saves? They'll be greyed out, because teasing is mean.</li>
+</ol>
+<h2 id="installation">Installation</h2>
+<ol>
+<li>Ensure you have <a href="https://melonwiki.xyz/#/">MelonLoader</a> installed for Schedule I.</li>
+<li>Download the appropriate mod flavor from the latest <a href="https://github.com/RoachxD/ScheduleOne.HonestMainMenu/releases/latest">Releases page</a>.
+<ul>
+<li>If your game is the IL2CPP (default) version, download <code>HonestMainMenu.Il2Cpp.dll</code>.</li>
+<li>If your game is the Mono (alternate) version, download <code>HonestMainMenu.Mono.dll</code>.</li>
+</ul>
+</li>
+<li>Place the downloaded <code>.dll</code> file into the <code>Mods</code> folder within your Schedule I game directory.</li>
+<li>Launch the game. Cross your fingers. Maybe.</li>
+</ol>
+<h2 id="configuration">Configuration</h2>
+<p>This mod is a simple creature. It has no external configuration options. What you see is what you get.</p>
+<h2 id="whats-next">What's Next?</h2>
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Investigate replacing the in-game main menu title logo with the higher-quality version used on the game's official website and Steam store page. Because the current one looks like it was made in MS Paint during a coffee break.</li>
+</ul>
+<h2 id="contributing">Contributing</h2>
+<p>Got suggestions, found a bug, or just want to share your own tales of menu-induced bewilderment? Feel free to open an issue or pull request on the project's GitHub repository.</p>
+<h3 id="building-from-source">Building from Source</h3>
+<p>So, you want to tinker with the innards? Brave. Here’s the drill:</p>
+<ol>
+<li><strong>Prerequisites:</strong>
+<ul>
+<li><a href="https://dotnet.microsoft.com/download">.NET SDK</a>: Make sure it's installed. The project targets .NET 6.0 for Il2Cpp builds and .NET Framework 4.7.2 for Mono builds (check <a href="ScheduleOne.HonestMainMenu.csproj"><code>ScheduleOne.HonestMainMenu.csproj</code></a> for specifics).</li>
+</ul>
+</li>
+<li><strong>Game Directory Setup:</strong>
+<ul>
+<li>You'll need an environment variable named <code>ScheduleOneGameDir</code>. This bad boy needs to point to the root directory of your Schedule I game installation (e.g., <code>C:\Program Files (x86)\Steam\steamapps\common\Schedule I</code>).</li>
+<li>This path is crucial for the build process to find game assemblies and to heroically copy the built mod DLLs into your game's <code>Mods</code> folder.</li>
+</ul>
+</li>
+<li><strong>Build Configurations:</strong>
+<ul>
+<li>The project supports several build configurations, detailed in <a href="ScheduleOne.HonestMainMenu.csproj"><code>ScheduleOne.HonestMainMenu.csproj</code></a> and <a href="ScheduleOne.HonestMainMenu.sln"><code>ScheduleOne.HonestMainMenu.sln</code></a>:
+<ul>
+<li><code>Debug_Il2Cpp</code> / <code>Release_Il2Cpp</code></li>
+<li><code>Debug_Mono</code> / <code>Release_Mono</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Building the Mod:</strong>
+<ul>
+<li>
+<p><strong>Using an IDE (e.g., Visual Studio, JetBrains Rider):</strong> Open the <a href="ScheduleOne.HonestMainMenu.sln"><code>ScheduleOne.HonestMainMenu.sln</code></a> solution file and build it. Pick your poison (configuration-wise).</p>
+</li>
+<li>
+<p><strong>Using the .NET CLI:</strong> Open your terminal, navigate to the project's root, and use the <code>dotnet build</code> command. For instance, to build the Il2Cpp Release version:</p>
+<pre><code class="language-shell">dotnet build -c Release_Il2Cpp ScheduleOne.HonestMainMenu.csproj
+</code></pre>
+</li>
+<li>
+<p><strong>VS Code Users:</strong> The repository includes a <a href=".vscode/tasks.json"><code>.vscode/tasks.json</code></a> file which defines build tasks for all configurations. You can run these tasks directly from VS Code (e.g., by pressing <code>Ctrl+Shift+B</code> and selecting a build task, or by running &quot;Tasks: Run Build Task&quot; from the Command Palette).</p>
+</li>
+</ul>
+</li>
+<li><strong>Output:</strong>
+<ul>
+<li>The compiled mod (<code>.dll</code> file) will appear in the <code>bin\[Configuration]\[TargetFramework]</code> subfolder (e.g., <code>bin\Release_Il2Cpp\net6.0</code>).</li>
+<li>The post-build event (defined in <a href="ScheduleOne.HonestMainMenu.csproj"><code>ScheduleOne.HonestMainMenu.csproj</code></a>) will also try to politely (or not so politely, via <code>taskkill /F</code>) close <code>Schedule I.exe</code> if it's running, then copy the fresh mod DLL to the <code>Mods</code> folder in your <code>ScheduleOneGameDir</code>.</li>
+</ul>
+</li>
+</ol>
+<h2 id="credits">Credits</h2>
+<ul>
+<li><strong><a href="https://github.com/RoachxD">Roach_ (Adrian Nicolae)</a>:</strong> The slightly disgruntled developer of this mod.</li>
+<li><strong>vic95v:</strong> My long-suffering friend and designated guinea pig, who bravely ventured into the treacherous lands of.. Multi-Player Lobbies, to help me test the &quot;Continue&quot; button. Your sacrifice (and suggestions) will be remembered. Mostly.</li>
+<li><strong><a href="https://melonwiki.xyz/#/">MelonLoader Team</a>:</strong> For MelonLoader, the magic that makes this all possible.</li>
+<li><strong><a href="https://www.scheduleonegame.com/presskit/schedule-one/index.html#about">Tyler's Video Game Studio</a>:</strong> For creating Schedule I, a game that's fun enough to warrant this kind of nitpicking.</li>
+</ul>
+<h2 id="license">License</h2>
+<p>This project is licensed under the MIT License. See the <a href="LICENSE.html"><code>LICENSE.md</code></a> file for the riveting legal details.</p>
+
+            
+            
+        </body>
+        </html>

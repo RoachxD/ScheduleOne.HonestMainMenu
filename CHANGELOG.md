@@ -1,0 +1,21 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.0.0] - 2025-06-14
+
+### Added
+
+- Initial release of **Honest Main Menu**.
+- Introduced a true "Continue" button that directly loads the most recent game session.
+- Repurposed the game's original "Continue" button to function as a "Load Game" button, including a label change to "Load Game".
+- Updated the title of the save selection screen (accessed via the new "Load Game" button) from "Continue" to "Load Game" for clarity.
+- Corrected the main menu's back button UI prompt by removing the misleading "RMB" (Right Mouse Button) indicator, as only the Escape key is functional here.
+- Implemented a Harmony patch ([`Patches.SceneManagerLoadScenePatch`](Patches/SceneManagerLoadScenePatch.cs)) for `SceneManager.LoadScene` to prevent the "Menu" scene (and others) from loading multiple times consecutively, addressing issues observed on startup and when returning to the main menu from a game session.
+- Provided dual build support for both IL2CPP and Mono versions of the game.
+- Configured buttons to be interactable only if save games exist.
+
+[1.0.0]: https://github.com/RoachxD/ScheduleOne.HonestMainMenu/releases/tag/v1.0.0

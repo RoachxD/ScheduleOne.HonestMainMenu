@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScheduleOne.HonestMainMenu", "ScheduleOne.HonestMainMenu.csproj", "{310C6481-BDBF-DBD3-CF39-4AFC288FE773}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug_Il2Cpp|Any CPU = Debug_Il2Cpp|Any CPU
+		Release_Il2Cpp|Any CPU = Release_Il2Cpp|Any CPU
+		Debug_Mono|Any CPU = Debug_Mono|Any CPU
+		Release_Mono|Any CPU = Release_Mono|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{310C6481-BDBF-DBD3-CF39-4AFC288FE773}.Debug_Il2Cpp|Any CPU.ActiveCfg = Debug_Il2Cpp|Any CPU
+		{310C6481-BDBF-DBD3-CF39-4AFC288FE773}.Debug_Il2Cpp|Any CPU.Build.0 = Debug_Il2Cpp|Any CPU
+		{310C6481-BDBF-DBD3-CF39-4AFC288FE773}.Release_Il2Cpp|Any CPU.ActiveCfg = Release_Il2Cpp|Any CPU
+		{310C6481-BDBF-DBD3-CF39-4AFC288FE773}.Release_Il2Cpp|Any CPU.Build.0 = Release_Il2Cpp|Any CPU
+		{310C6481-BDBF-DBD3-CF39-4AFC288FE773}.Debug_Mono|Any CPU.ActiveCfg = Debug_Mono|Any CPU
+		{310C6481-BDBF-DBD3-CF39-4AFC288FE773}.Debug_Mono|Any CPU.Build.0 = Debug_Mono|Any CPU
+		{310C6481-BDBF-DBD3-CF39-4AFC288FE773}.Release_Mono|Any CPU.ActiveCfg = Release_Mono|Any CPU
+		{310C6481-BDBF-DBD3-CF39-4AFC288FE773}.Release_Mono|Any CPU.Build.0 = Release_Mono|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D442F413-57EB-4273-ACCE-C151D29D64B3}
+	EndGlobalSection
+EndGlobal
