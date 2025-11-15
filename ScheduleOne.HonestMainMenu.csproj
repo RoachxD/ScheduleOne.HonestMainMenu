@@ -54,6 +54,10 @@
     <Compile Include="Main.cs" />
     <Compile Include="UIConstants.cs" />
     <Compile Include="UIHelper.cs" />
+    <Compile Include="Models\SerializableClothingFile.cs" />
+    <Compile Include="Models\SerializableClothingSaveData.cs" />
+    <Compile Include="Models\SerializableColor.cs" />
+    <Compile Include="Models\SerializableColorData.cs" />
     <Compile Include="Models\MenuButtons.cs" />
     <Compile Include="Patches\SceneManagerLoadScenePatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -61,6 +65,7 @@
     <Compile Include="Services\ContinueScreenSetup.cs" />
     <Compile Include="Services\MenuReactivity.cs" />
     <Compile Include="Services\MenuSetup.cs" />
+    <EmbeddedResource Include="Resources\ColorData.json" />
   </ItemGroup>
 
   <ItemGroup Condition="$(DefineConstants.Contains('IL2CPP_BUILD'))">
