@@ -60,6 +60,7 @@ This mod is a simple creature. It has no external configuration options. What yo
 
 ## What's Next?
 
+* [x] Rehydrate the main menu avatar with saved clothing layers/accessories so wardrobe colors match the latest playthrough.
 * [ ] Investigate replacing the in-game main menu title logo with the higher-quality version used on the game's official website and Steam store page. Because the current one looks like it was made in MS Paint during a coffee break.
 
 ## Contributing
