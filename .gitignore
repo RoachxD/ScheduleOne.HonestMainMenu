@@ -10,6 +10,7 @@
 *.sln.docstates
 
 # User-specific folders
+.config/
 .history/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
