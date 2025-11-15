@@ -2,7 +2,7 @@
 
 [![Game](https://img.shields.io/badge/Game-Schedule_I-507437?labelColor=39482D)](https://www.scheduleonegame.com/)
 [![MelonLoader](https://img.shields.io/badge/MelonLoader-v0.7.x-79F863?labelColor=FA3768)](https://melonwiki.xyz/#/)
-[![Version](https://img.shields.io/badge/Version-1.0.0-70885B?labelColor=4C4C27)](https://github.com/RoachxD/ScheduleOne.HonestMainMenu/releases/latest)
+[![Version](https://img.shields.io/badge/Version-1.0.1-70885B?labelColor=4C4C27)](https://github.com/RoachxD/ScheduleOne.HonestMainMenu/releases/latest)
 [![License](https://img.shields.io/badge/License-MIT-849670?labelColor=4C4C27)](LICENSE.md)
 
 Ever felt like the main menu in Schedule I was... well, not entirely straight with you? Like it was holding back, maybe even telling a few white lies? You're not alone.
