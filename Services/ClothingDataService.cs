@@ -39,6 +39,8 @@ public static class ClothingDataService
         new(typeof(SerializableClothingSaveData), SerializerSettings);
     private static readonly DataContractJsonSerializer ColorListSerializer =
         new(typeof(List<SerializableColorData>), SerializerSettings);
+    private static readonly object EmbeddedColorDataLock = new();
+    private static List<SerializableColorData> _embeddedColorDataCache;
 
     public static IEnumerator ApplyClothingCoroutine(
         Avatar avatar,
@@ -85,14 +87,19 @@ public static class ClothingDataService
             return;
         }
 
-        SerializableClothingFile clothingFile = DeserializeClothingFile(
-            File.ReadAllText(clothingJsonPath),
-            clothingJsonPath
-        );
+        SerializableClothingFile clothingFile = DeserializeClothingFile(clothingJsonPath);
         if (clothingFile == null)
         {
             Melon<Main>.Logger.Error(
                 $"[ClothingService] Failed to parse clothing file at {clothingJsonPath}. Skipping."
+            );
+            return;
+        }
+
+        if (clothingFile.Items == null || clothingFile.Items.Count == 0)
+        {
+            Melon<Main>.Logger.Warning(
+                $"[ClothingService] Clothing file at {clothingJsonPath} did not contain any items. Skipping."
             );
             return;
         }
@@ -104,17 +111,21 @@ public static class ClothingDataService
         );
 #endif
 
-        foreach (string itemJson in clothingFile.Items ?? Enumerable.Empty<string>())
+        int appliedCount = 0;
+        foreach (string itemJson in clothingFile.Items)
         {
-            ApplySingleClothingItem(avatarSettings, itemJson, clothingJsonPath);
+            if (ApplySingleClothingItem(avatarSettings, itemJson, clothingJsonPath))
+            {
+                appliedCount++;
+            }
         }
 
         Melon<Main>.Logger.Msg(
-            $"[ClothingService] Successfully added {clothingFile.Items?.Count ?? 0} clothing items to the Avatar."
+            $"[ClothingService] Successfully added {appliedCount} clothing items to the Avatar."
         );
     }
 
-    private static void ApplySingleClothingItem(
+    private static bool ApplySingleClothingItem(
         AvatarSettings avatarSettings,
         string itemJson,
         string sourcePath
@@ -130,7 +141,7 @@ public static class ClothingDataService
             Melon<Main>.Logger.Warning(
                 $"[ClothingService] Empty clothing item JSON found in '{sourcePath}', skipping."
             );
-            return;
+            return false;
         }
 
         SerializableClothingSaveData clothingData = DeserializeClothingItem(itemJson, sourcePath);
@@ -139,7 +150,7 @@ public static class ClothingDataService
             Melon<Main>.Logger.Warning(
                 $"[ClothingService] Invalid clothing data found in '{sourcePath}', skipping item. Payload: {TrimForLog(itemJson)}"
             );
-            return;
+            return false;
         }
 
         if (!clothingData.TryGetValidColor(out var clothingColor))
@@ -147,7 +158,7 @@ public static class ClothingDataService
             Melon<Main>.Logger.Warning(
                 $"[ClothingService] Clothing data failed validation for ID '{clothingData.Id}' in '{sourcePath}'. Payload: {TrimForLog(itemJson)}"
             );
-            return;
+            return false;
         }
 
         if (Registry.GetItem(clothingData.Id) is not ClothingDefinition def)
@@ -155,7 +166,7 @@ public static class ClothingDataService
             Melon<Main>.Logger.Warning(
                 $"[ClothingService] Clothing item not found in registry: {clothingData.Id} (source: {sourcePath})"
             );
-            return;
+            return false;
         }
 
 #if DEBUG
@@ -200,6 +211,7 @@ public static class ClothingDataService
             $"[ClothingService - DEBUG] Applied clothing item: ID={clothingData.Id}, Type={def.ApplicationType}, Color={finalColor}"
         );
 #endif
+        return true;
     }
 
     private static void EnsureClothingUtility()
@@ -276,7 +288,7 @@ public static class ClothingDataService
             }
 
             // Before saving, compare with the hardcoded defaults.
-            var defaultData = LoadEmbeddedColorData();
+            var defaultData = GetEmbeddedColorData(cloneList: false);
             if (!collectedColors.SequenceEqual(defaultData))
             {
                 Melon<Main>.Logger.Warning(
@@ -327,17 +339,31 @@ public static class ClothingDataService
             Melon<Main>.Logger.Msg(
                 "[ClothingDataService] Custom color data not found. Loading embedded default colors."
             );
-            return LoadEmbeddedColorData();
+            return GetEmbeddedColorData(cloneList: true);
         }
 
         Melon<Main>.Logger.Msg(
             $"[ClothingDataService] Loading custom color data from '{ColorDataFilePath}'."
         );
-        string json = File.ReadAllText(ColorDataFilePath);
-        return DeserializeColorArray(json, ColorDataFilePath);
+        using FileStream stream = File.OpenRead(ColorDataFilePath);
+        return DeserializeColorArray(stream, ColorDataFilePath);
     }
 
-    private static List<SerializableColorData> LoadEmbeddedColorData()
+    private static List<SerializableColorData> GetEmbeddedColorData(bool cloneList)
+    {
+        lock (EmbeddedColorDataLock)
+        {
+            _embeddedColorDataCache ??= LoadEmbeddedColorDataFromResource();
+            if (!cloneList)
+            {
+                return _embeddedColorDataCache;
+            }
+
+            return new List<SerializableColorData>(_embeddedColorDataCache);
+        }
+    }
+
+    private static List<SerializableColorData> LoadEmbeddedColorDataFromResource()
     {
         var assembly = Assembly.GetExecutingAssembly();
         // The resource name is constructed from the default namespace and the filename.
@@ -352,9 +378,7 @@ public static class ClothingDataService
             return new();
         }
 
-        using StreamReader reader = new(stream);
-        string json = reader.ReadToEnd();
-        var colorList = DeserializeColorArray(json, resourceName);
+        var colorList = DeserializeColorArray(stream, resourceName);
 #if DEBUG
         Melon<Main>.Logger.Msg(
             $"[ClothingDataService - DEBUG] Loaded {colorList.Count} colors from embedded resource."
@@ -363,15 +387,13 @@ public static class ClothingDataService
         return colorList;
     }
 
-    private static SerializableClothingFile DeserializeClothingFile(
-        string json,
-        string sourceDescription
-    )
+    private static SerializableClothingFile DeserializeClothingFile(string sourcePath)
     {
+        using FileStream stream = File.OpenRead(sourcePath);
         return DeserializePayload<SerializableClothingFile>(
             ClothingFileSerializer,
-            json,
-            sourceDescription
+            stream,
+            sourcePath
         );
     }
 
@@ -388,6 +410,16 @@ public static class ClothingDataService
         );
     }
 
+    private static List<SerializableColorData> DeserializeColorArray(Stream stream, string source)
+    {
+        var rawList = DeserializePayload<List<SerializableColorData>>(
+            ColorListSerializer,
+            stream,
+            source
+        );
+        return NormalizeColorList(rawList);
+    }
+
     private static List<SerializableColorData> DeserializeColorArray(string json, string source)
     {
         var rawList = DeserializePayload<List<SerializableColorData>>(
@@ -395,7 +427,13 @@ public static class ClothingDataService
             json,
             source
         );
+        return NormalizeColorList(rawList);
+    }
 
+    private static List<SerializableColorData> NormalizeColorList(
+        List<SerializableColorData> rawList
+    )
+    {
         return rawList?
                 .Where(entry => entry != null && entry.ActualColor != null)
                 .ToList()
@@ -425,6 +463,35 @@ public static class ClothingDataService
 
     private static T DeserializePayload<T>(
         DataContractJsonSerializer serializer,
+        Stream stream,
+        string sourceDescription,
+        string payloadForLog = null
+    )
+        where T : class
+    {
+        if (stream == null)
+            return null;
+
+        try
+        {
+            return serializer.ReadObject(stream) as T;
+        }
+        catch (Exception ex)
+        {
+            string message =
+                $"[ClothingDataService] Failed to deserialize {typeof(T).Name} ({sourceDescription}): {ex}";
+            if (!string.IsNullOrEmpty(payloadForLog))
+            {
+                message = $"{message} Payload: {TrimForLog(payloadForLog)}";
+            }
+
+            Melon<Main>.Logger.Error(message);
+            return null;
+        }
+    }
+
+    private static T DeserializePayload<T>(
+        DataContractJsonSerializer serializer,
         string json,
         string sourceDescription,
         bool includePayloadInLog = false
@@ -434,23 +501,9 @@ public static class ClothingDataService
         if (string.IsNullOrWhiteSpace(json))
             return null;
 
-        try
-        {
-            using MemoryStream stream = new(Encoding.UTF8.GetBytes(json));
-            return serializer.ReadObject(stream) as T;
-        }
-        catch (Exception ex)
-        {
-            string message =
-                $"[ClothingDataService] Failed to deserialize {typeof(T).Name} ({sourceDescription}): {ex}";
-            if (includePayloadInLog)
-            {
-                message = $"{message} Payload: {TrimForLog(json)}";
-            }
-
-            Melon<Main>.Logger.Error(message);
-            return null;
-        }
+        using MemoryStream stream = new(Encoding.UTF8.GetBytes(json));
+        string payloadForLog = includePayloadInLog ? json : null;
+        return DeserializePayload<T>(serializer, stream, sourceDescription, payloadForLog);
     }
 
     private static string TrimForLog(string value, int maxLength = 160)
