@@ -7,12 +7,15 @@ internal static class ContinueScreenSetup
 {
     public static void Apply(Transform mainMenuRoot)
     {
-        Transform continueScreen = mainMenuRoot.Find($"{UIConstants.ContinueObjectNameAndLabel}");
-        if (continueScreen == null)
-        {
-            Melon<Main>.Logger.Error(
+        if (
+            !UIHelper.TryFindChild(
+                mainMenuRoot,
+                UIConstants.ContinueObjectNameAndLabel,
+                out Transform continueScreen,
                 $"Could not find 'MainMenu/Continue' screen object. Aborting screen configuration."
-            );
+            )
+        )
+        {
             return;
         }
 
@@ -24,13 +27,15 @@ internal static class ContinueScreenSetup
         );
 #endif
 
-        Transform titleTransform = continueScreen.Find(UIConstants.TitleObjectName);
-        if (titleTransform == null)
+        if (
+            !UIHelper.TryFindChild(
+                continueScreen,
+                UIConstants.TitleObjectName,
+                out Transform titleTransform,
+                $"Could not find '{UIConstants.TitleObjectName}' child GameObject under '{continueScreen.name}'. The screen title text will not be updated."
+            )
+        )
         {
-            Melon<Main>.Logger.Error(
-                $"Could not find '{UIConstants.TitleObjectName}' child GameObject under '{continueScreen.name}'. "
-                    + "The screen title text will not be updated."
-            );
             return;
         }
 

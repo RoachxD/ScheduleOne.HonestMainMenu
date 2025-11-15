@@ -9,23 +9,27 @@ internal static class MenuSetup
 {
     public static MenuButtons Build(Transform menuRoot)
     {
-        Transform menuButtonsParent = menuRoot.Find(UIConstants.MenuButtonsParentPath);
-        if (menuButtonsParent == null)
-        {
-            Melon<Main>.Logger.Error(
+        if (
+            !UIHelper.TryFindChild(
+                menuRoot,
+                UIConstants.MenuButtonsParentPath,
+                out Transform menuButtonsParent,
                 $"Could not find menu buttons parent object at '{UIConstants.MainMenuObjectName}/{UIConstants.MenuButtonsParentPath}', aborting UI modifications!"
-            );
+            )
+        )
+        {
             return null;
         }
 
-        Transform originalContinueButton = menuButtonsParent.Find(
-            UIConstants.ContinueObjectNameAndLabel
-        );
-        if (originalContinueButton == null)
-        {
-            Melon<Main>.Logger.Error(
+        if (
+            !UIHelper.TryFindChild(
+                menuButtonsParent,
+                UIConstants.ContinueObjectNameAndLabel,
+                out Transform originalContinueButton,
                 $"Could not find the original '{UIConstants.ContinueObjectNameAndLabel}' button object, aborting UI modifications!"
-            );
+            )
+        )
+        {
             return null;
         }
 

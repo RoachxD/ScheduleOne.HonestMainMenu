@@ -1,3 +1,4 @@
+using MelonLoader;
 using UnityEngine;
 #if IL2CPP_BUILD
 using Il2CppTMPro;
@@ -19,5 +20,31 @@ public static class UIHelper
             return;
 
         tmpText.text = text;
+    }
+
+    public static bool TryFindChild(
+        Transform parent,
+        string childPath,
+        out Transform child,
+        string failureMessage,
+        bool logWarning = false
+    )
+    {
+        child = parent?.Find(childPath);
+        if (child != null)
+        {
+            return true;
+        }
+
+        if (logWarning)
+        {
+            Melon<Main>.Logger.Warning(failureMessage);
+        }
+        else
+        {
+            Melon<Main>.Logger.Error(failureMessage);
+        }
+
+        return false;
     }
 }
