@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using MelonLoader;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -25,15 +24,14 @@ internal static class BackButtonPromptSetup
         {
             return; // Error logged by TryGetInputPrompt
         }
-        List<InputActionReference> filteredActions = GetFilteredInputActions(
-            inputPromptComponent.Actions,
-            UIConstants.RmbPromptBindingKey,
-            out bool actionsWereModified
+        bool actionsWereModified = RemoveActionsMatchingBinding(
+            inputPromptComponent,
+            UIConstants.RmbPromptBindingKey
         );
 
         if (actionsWereModified)
         {
-            ApplyActionsToPrompt(inputPromptComponent, filteredActions, inputPromptOwnerObject);
+            RefreshPrompt(inputPromptComponent, inputPromptOwnerObject);
         }
         else
         {
@@ -72,78 +70,60 @@ internal static class BackButtonPromptSetup
         return true;
     }
 
-    private static List<InputActionReference> GetFilteredInputActions(
-#if IL2CPP_BUILD
-        Il2CppSystem.Collections.Generic.List<InputActionReference> currentActions,
-#elif MONO_BUILD
-        System.Collections.Generic.List<InputActionReference> currentActions,
-#endif
-        string bindingKeyToRemove,
-        out bool actionsModified
+    private static bool RemoveActionsMatchingBinding(
+        InputPrompt promptComponent,
+        string bindingKeyToRemove
     )
     {
-        actionsModified = false;
-        List<InputActionReference> actionsToKeep = new();
-
-        foreach (InputActionReference actionRef in currentActions)
+#if IL2CPP_BUILD
+        var actions = promptComponent.Actions;
+        bool removed = false;
+        for (int i = actions.Count - 1; i >= 0; i--)
         {
-            if (actionRef == null || actionRef.action == null)
+            var actionRef = actions[i];
+            if (ShouldRemoveAction(actionRef, bindingKeyToRemove))
             {
-                actionsToKeep.Add(actionRef);
-                continue;
-            }
-
-            actionRef.action.GetBindingDisplayString(0, out _, out string bindingKey, 0);
-
-#if DEBUG
-            Melon<Main>.Logger.Msg(
-                $"Processing action with binding key: '{bindingKey}' for action name: '{actionRef.action.name}'"
-            );
-#endif
-
-            if (bindingKeyToRemove.Equals(bindingKey, System.StringComparison.OrdinalIgnoreCase))
-            {
-                actionsModified = true;
-#if DEBUG
-                Melon<Main>.Logger.Msg(
-                    $"Action with binding key '{bindingKey}' matches '{bindingKeyToRemove}'. It will be removed."
-                );
-#endif
-            }
-            else
-            {
-                actionsToKeep.Add(actionRef);
+                actions.RemoveAt(i);
+                removed = true;
             }
         }
-        return actionsToKeep; // This is a System.Collections.Generic.List
+        return removed;
+#elif MONO_BUILD
+        return promptComponent.Actions.RemoveAll(
+                actionRef => ShouldRemoveAction(actionRef, bindingKeyToRemove)
+            ) > 0;
+#endif
     }
 
-    [SuppressMessage(
-        "csharpsquid",
-        "S1172",
-        Justification = "Method parameters is used in both IL2CPP and Mono builds."
-    )]
-    private static void ApplyActionsToPrompt(
-        InputPrompt promptComponent,
-        List<InputActionReference> newActions,
-        GameObject promptOwnerObject
-    )
+    private static bool ShouldRemoveAction(InputActionReference actionRef, string bindingKeyToRemove)
     {
-        promptComponent.Actions.Clear();
-#if IL2CPP_BUILD
-        // newActions is System.Collections.Generic.List<InputActionReference>
-        // promptComponent.Actions is Il2CppSystem.Collections.Generic.List<InputActionReference>
-        // Adding items one by one is generally safe for interop types.
-        foreach (var actionRef in newActions)
+        if (actionRef?.action == null)
         {
-            promptComponent.Actions.Add(actionRef);
+            return false;
         }
-#elif MONO_BUILD
-        // newActions is System.Collections.Generic.List<InputActionReference>
-        // promptComponent.Actions is System.Collections.Generic.List<InputActionReference>
-        promptComponent.Actions.AddRange(newActions);
+
+        actionRef.action.GetBindingDisplayString(0, out _, out string bindingKey, 0);
+#if DEBUG
+        Melon<Main>.Logger.Msg(
+            $"Processing action with binding key: '{bindingKey}' for action name: '{actionRef.action.name}'"
+        );
 #endif
 
+        bool shouldRemove =
+            bindingKeyToRemove.Equals(bindingKey, System.StringComparison.OrdinalIgnoreCase);
+#if DEBUG
+        if (shouldRemove)
+        {
+            Melon<Main>.Logger.Msg(
+                $"Action with binding key '{bindingKey}' matches '{bindingKeyToRemove}'. It will be removed."
+            );
+        }
+#endif
+        return shouldRemove;
+    }
+
+    private static void RefreshPrompt(InputPrompt promptComponent, GameObject promptOwnerObject)
+    {
 #if DEBUG
         Melon<Main>.Logger.Msg(
             $"Updated 'Actions' list for InputPrompt on '{UIConstants.InputPromptObjectName}'. New count: {promptComponent.Actions.Count}"
@@ -162,7 +142,6 @@ internal static class BackButtonPromptSetup
             }
         }
 #endif
-
         if (promptOwnerObject.activeInHierarchy)
         {
             promptOwnerObject.SetActive(false);
