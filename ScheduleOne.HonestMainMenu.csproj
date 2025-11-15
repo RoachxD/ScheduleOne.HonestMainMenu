@@ -3,18 +3,25 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <LangVersion>latest</LangVersion>
+
     <AssemblyName>HonestMainMenu</AssemblyName>
+    <RootNamespace>HonestMainMenu</RootNamespace>
+     
     <Description>A MelonLoader mod for Schedule I that adds a true continue button to the main menu.</Description>
     <Version>1.0.0</Version>
     <Authors>Roach_</Authors>
     <Copyright>Copyright © 2025 Roach_ (Adrian Nicolae)</Copyright>
     <NeutralLanguage>en-GB</NeutralLanguage>
-    <RootNamespace>HonestMainMenu</RootNamespace>
+
     <Configurations>Debug_Il2Cpp;Release_Il2Cpp;Debug_Mono;Release_Mono</Configurations>
     <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
+
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Deterministic>true</Deterministic>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
@@ -43,6 +50,18 @@
     <AssemblyName>HonestMainMenu.Mono</AssemblyName>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Include="Main.cs" />
+    <Compile Include="UIConstants.cs" />
+    <Compile Include="UIHelper.cs" />
+    <Compile Include="Models\MenuButtons.cs" />
+    <Compile Include="Patches\SceneManagerLoadScenePatch.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\BackButtonPromptSetup.cs" />
+    <Compile Include="Services\ContinueScreenSetup.cs" />
+    <Compile Include="Services\MenuReactivity.cs" />
+    <Compile Include="Services\MenuSetup.cs" />
+  </ItemGroup>
 
   <ItemGroup Condition="$(DefineConstants.Contains('IL2CPP_BUILD'))">
     <Reference Include="MelonLoader">
