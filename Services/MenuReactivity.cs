@@ -19,6 +19,10 @@ namespace HonestMainMenu.Services;
 internal static class MenuReactivity
 {
     private static UnityAction _onSaveInfoLoaded;
+    private const string ContinueErrorTitle = "Error";
+    private const string ContinueErrorMessage =
+        "An error occurred while trying to continue the last played game. "
+        + "Please try loading it manually from the Load Game menu.";
 
     public static IEnumerator Run(MenuButtons menuButtons)
     {
@@ -112,29 +116,24 @@ internal static class MenuReactivity
             }
             catch (Exception ex)
             {
-                Melon<Main>.Logger.Error(
-                    $"Fallback StartGame call also failed after MissingMethodException: {ex}"
-                );
-                MainMenuPopup.Instance.Open(
-                    "Error",
-                    "An error occurred while trying to continue the last played game. " +
-                    "Please try loading it manually from the Load Game menu.",
-                    true
+                ShowContinueFailureDialog(
+                    "Fallback StartGame call also failed after MissingMethodException",
+                    ex
                 );
             }
         }
         catch (Exception ex)
         {
-            Melon<Main>.Logger.Error(
-                $"An error occurred while trying to continue the last played game: {ex}"
-            );
-            MainMenuPopup.Instance.Open(
-                "Error",
-                "An error occurred while trying to continue the last played game. " +
-                "Please try loading it manually from the Load Game menu.",
-                true
+            ShowContinueFailureDialog(
+                "An error occurred while trying to continue the last played game",
+                ex
             );
         }
+    }
 
+    private static void ShowContinueFailureDialog(string context, Exception exception)
+    {
+        Melon<Main>.Logger.Error($"{context}: {exception}");
+        MainMenuPopup.Instance.Open(ContinueErrorTitle, ContinueErrorMessage, true);
     }
 }
