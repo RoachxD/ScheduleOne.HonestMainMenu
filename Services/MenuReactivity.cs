@@ -91,6 +91,50 @@ internal static class MenuReactivity
             return;
         }
 
-        LoadManager.Instance.StartGame(LoadManager.LastPlayedGame, false);
+        try
+        {
+            LoadManager.Instance.StartGame(LoadManager.LastPlayedGame, false, true);
+        }
+        catch (MissingMethodException mmEx) when (
+            mmEx.Message.Contains("StartGame") ||
+            (mmEx.StackTrace?.Contains("LoadManager.StartGame") ?? false)
+        )
+        {
+            try
+            {
+                LoadManager.Instance.StartGame(LoadManager.LastPlayedGame, false);
+
+                Melon<Main>.Logger.Warning(
+                    $"Detected missing method exception while trying to continue the last played game: {mmEx}. " +
+                    "This is likely due to an outdated game build. Please update to the latest version. " +
+                    "Continuing with the older method signature."
+                );
+            }
+            catch (Exception ex)
+            {
+                Melon<Main>.Logger.Error(
+                    $"Fallback StartGame call also failed after MissingMethodException: {ex}"
+                );
+                MainMenuPopup.Instance.Open(
+                    "Error",
+                    "An error occurred while trying to continue the last played game. " +
+                    "Please try loading it manually from the Load Game menu.",
+                    true
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            Melon<Main>.Logger.Error(
+                $"An error occurred while trying to continue the last played game: {ex}"
+            );
+            MainMenuPopup.Instance.Open(
+                "Error",
+                "An error occurred while trying to continue the last played game. " +
+                "Please try loading it manually from the Load Game menu.",
+                true
+            );
+        }
+
     }
 }
