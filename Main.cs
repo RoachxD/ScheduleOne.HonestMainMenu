@@ -2,6 +2,11 @@ using System.Linq;
 using System.Reflection;
 using MelonLoader;
 using UnityEngine;
+#if IL2CPP_BUILD
+using Il2CppScheduleOne.Clothing;
+#elif MONO_BUILD
+using ScheduleOne.Clothing;
+#endif
 using HonestMainMenu.Services;
 
 namespace HonestMainMenu;
@@ -40,7 +45,24 @@ public class Main : MelonMod
     {
         if (!sceneName.Equals(UIConstants.MenuSceneName, System.StringComparison.OrdinalIgnoreCase))
         {
+            Melon<Main>.Logger.Msg(
+                $"Scene '{sceneName}' loaded outside the main menu. Stopping menu reactivity and snapshotting live clothing colors."
+            );
             MenuReactivity.Stop();
+            var clothingUtility = ClothingUtility.Instance;
+            if (clothingUtility?.ColorDataList != null)
+            {
+                ClothingDataService.ExtractAndSaveColorData(clothingUtility.ColorDataList);
+                Melon<Main>.Logger.Msg(
+                    $"Captured {clothingUtility.ColorDataList.Count} clothing colors before leaving the menu scene."
+                );
+            }
+            else
+            {
+                Melon<Main>.Logger.Warning(
+                    "[Main.OnSceneWasLoaded] ClothingUtility or its ColorDataList is null, skipping color data extraction."
+                );
+            }
             return;
         }
 
