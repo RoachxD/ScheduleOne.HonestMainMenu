@@ -19,6 +19,7 @@ namespace HonestMainMenu.Services;
 internal static class MenuReactivity
 {
     private static UnityAction _onSaveInfoLoaded;
+    private static bool _continueActionHooked;
     private const string ContinueErrorTitle = "Error";
     private const string ContinueErrorMessage =
         "An error occurred while trying to continue the last played game. "
@@ -48,37 +49,36 @@ internal static class MenuReactivity
             "LastPlayedGame is null, waiting for LoadManager.OnSaveInfoLoaded event to update buttons."
         );
 #endif
-        _onSaveInfoLoaded = (UnityAction)(
-            () =>
-            {
-                Melon<Main>.Logger.Msg(
-                    "LoadManager.OnSaveInfoLoaded event triggered, updating buttons interactable states."
-                );
-                UpdateContinueButtonInteractableState(menuButtons);
-            }
-        );
-        LoadManager.Instance.onSaveInfoLoaded.AddListener(_onSaveInfoLoaded);
+        if (_onSaveInfoLoaded == null)
+        {
+            _onSaveInfoLoaded = (UnityAction)(
+                () =>
+                {
+                    Melon<Main>.Logger.Msg(
+                        "LoadManager.OnSaveInfoLoaded event triggered, updating buttons interactable states."
+                    );
+                    UpdateContinueButtonInteractableState(menuButtons);
+                    DetachSaveInfoListener();
+                }
+            );
+            LoadManager.Instance.onSaveInfoLoaded.AddListener(_onSaveInfoLoaded);
+        }
     }
 
     public static void Stop()
     {
-        if (_onSaveInfoLoaded == null)
-        {
-            return;
-        }
-
-        LoadManager.Instance.onSaveInfoLoaded.RemoveListener(_onSaveInfoLoaded);
-        _onSaveInfoLoaded = null;
-#if DEBUG
-        Melon<Main>.Logger.Msg(
-            "Menu reactivity stopped, LoadManager.OnSaveInfoLoaded listener removed."
-        );
-#endif
+        DetachSaveInfoListener();
+        _continueActionHooked = false;
     }
 
     private static void UpdateContinueButtonInteractableState(MenuButtons menuButtons)
     {
-        menuButtons.ContinueButton.onClick.AddListener((UnityAction)PerformNewContinueAction);
+        if (!_continueActionHooked)
+        {
+            menuButtons.ContinueButton.onClick.AddListener((UnityAction)PerformNewContinueAction);
+            _continueActionHooked = true;
+        }
+
         menuButtons.ContinueButton.interactable = true;
         menuButtons.LoadGameButton.interactable = true;
     }
@@ -135,5 +135,21 @@ internal static class MenuReactivity
     {
         Melon<Main>.Logger.Error($"{context}: {exception}");
         MainMenuPopup.Instance.Open(ContinueErrorTitle, ContinueErrorMessage, true);
+    }
+
+    private static void DetachSaveInfoListener()
+    {
+        if (_onSaveInfoLoaded == null || LoadManager.Instance == null)
+        {
+            return;
+        }
+
+        LoadManager.Instance.onSaveInfoLoaded.RemoveListener(_onSaveInfoLoaded);
+        _onSaveInfoLoaded = null;
+#if DEBUG
+        Melon<Main>.Logger.Msg(
+            "Menu reactivity stopped, LoadManager.OnSaveInfoLoaded listener removed."
+        );
+#endif
     }
 }
