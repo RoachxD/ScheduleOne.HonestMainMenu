@@ -7,6 +7,7 @@ using Il2CppScheduleOne.Clothing;
 #elif MONO_BUILD
 using ScheduleOne.Clothing;
 #endif
+using HonestMainMenu.Patches;
 using HonestMainMenu.Services;
 
 namespace HonestMainMenu;
@@ -49,6 +50,7 @@ public class Main : MelonMod
                 $"Scene '{sceneName}' loaded outside the main menu. Stopping menu reactivity and snapshotting live clothing colors."
             );
             MenuReactivity.Stop();
+            MainMenuRigLoadStuffPatch.ResetLoadedRigs();
             var clothingUtility = ClothingUtility.Instance;
             if (clothingUtility?.ColorDataList != null)
             {
@@ -66,6 +68,7 @@ public class Main : MelonMod
             return;
         }
 
+        MainMenuRigLoadStuffPatch.ResetLoadedRigs();
         Melon<Main>.Logger.Msg(
             $"Main menu scene ('{UIConstants.MenuSceneName}') loaded. Attempting UI modifications.."
         );
