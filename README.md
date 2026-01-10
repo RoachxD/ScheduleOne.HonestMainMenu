@@ -44,6 +44,7 @@ Once you actually *see* the main menu, the mod rolls up its sleeves:
 4. **Clarifies Load Screen:** If you click the "Load Game" button, the title of the screen that pops up is changed from "Continue" to "Load Game". Consistency!
 5. **Fixes Back Button Info:** The on-screen tip for the back button is corrected, removing the phantom RMB functionality.
 6. **Smart Button Activation:** The new "Continue" and "Load Game" buttons will only be active if you actually have saved games. No saves? They'll be greyed out, because teasing is mean.
+7. **Applies Saved Outfits Reliably:** Seeds `ClothingUtility` with embedded or saved palettes, resolves clothing definitions from the registry, and applies your last save’s clothing layers/accessories on both Mono and IL2CPP.
 
 ## Installation
 
