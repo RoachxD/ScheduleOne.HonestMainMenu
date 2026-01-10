@@ -13,7 +13,7 @@ using MelonLoader;
 [assembly: MelonInfo(
     typeof(HonestMainMenu.Main),
     "Honest Main Menu",
-    "1.0.1",
+    "1.1.0",
     "Roach_ (Adrian Nicolae)",
     "https://github.com/RoachxD/ScheduleOne.HonestMainMenu/releases/latest"
 )]
