@@ -100,9 +100,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.JSONSerializeModule">
-      <HintPath>
-        $(ScheduleOneGameDir)\MelonLoader\Il2CppAssemblies\UnityEngine.JSONSerializeModule.dll
-      </HintPath>
+      <HintPath>$(ScheduleOneGameDir)\MelonLoader\Il2CppAssemblies\UnityEngine.JSONSerializeModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">

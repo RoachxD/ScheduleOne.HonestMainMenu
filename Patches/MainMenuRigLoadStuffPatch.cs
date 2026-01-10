@@ -131,3 +131,71 @@ public static class MainMenuRigLoadStuffPatch
         }
     }
 }
+
+#if IL2CPP_BUILD
+[HarmonyPatch(typeof(Il2CppScheduleOne.Clothing.ClothingUtility), "Awake")]
+public static class ClothingUtilityAwakePatch
+{
+    [HarmonyPrefix]
+    public static void Prefix(Il2CppScheduleOne.Clothing.ClothingUtility __instance)
+    {
+        try
+        {
+            var colors = ClothingDataService.LoadColorData();
+            if (colors == null || colors.Count == 0)
+            {
+                return;
+            }
+
+            __instance.ColorDataList ??= new Il2CppSystem.Collections.Generic.List<Il2CppScheduleOne.Clothing.ClothingUtility.ColorData>();
+            __instance.ColorDataList.Clear();
+
+            var enumValues = (Il2CppScheduleOne.Clothing.EClothingColor[])Enum.GetValues(typeof(Il2CppScheduleOne.Clothing.EClothingColor));
+            var existing = new HashSet<int>();
+            foreach (var entry in colors)
+            {
+                if (entry == null || entry.ActualColor == null)
+                {
+                    continue;
+                }
+
+                int colorType = entry.ColorType;
+                existing.Add(colorType);
+                var unityColor = entry.ToUnityColor();
+                __instance.ColorDataList.Add(
+                    new Il2CppScheduleOne.Clothing.ClothingUtility.ColorData
+                    {
+                        ColorType = (Il2CppScheduleOne.Clothing.EClothingColor)colorType,
+                        ActualColor = unityColor,
+                        LabelColor = unityColor
+                    }
+                );
+            }
+
+            foreach (var value in enumValues)
+            {
+                int colorType = (int)value;
+                if (existing.Contains(colorType))
+                {
+                    continue;
+                }
+
+                __instance.ColorDataList.Add(
+                    new Il2CppScheduleOne.Clothing.ClothingUtility.ColorData
+                    {
+                        ColorType = value,
+                        ActualColor = UnityEngine.Color.white,
+                        LabelColor = UnityEngine.Color.white
+                    }
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            Melon<Main>.Logger.Warning(
+                $"[ClothingService] Failed to seed ClothingUtility colors before Awake: {ex}"
+            );
+        }
+    }
+}
+#endif
