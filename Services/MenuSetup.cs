@@ -9,23 +9,27 @@ internal static class MenuSetup
 {
     public static MenuButtons Build(Transform menuRoot)
     {
-        Transform menuButtonsParent = menuRoot.Find(UIConstants.MenuButtonsParentPath);
-        if (menuButtonsParent == null)
-        {
-            Melon<Main>.Logger.Error(
+        if (
+            !UIHelper.TryFindChild(
+                menuRoot,
+                UIConstants.MenuButtonsParentPath,
+                out Transform menuButtonsParent,
                 $"Could not find menu buttons parent object at '{UIConstants.MainMenuObjectName}/{UIConstants.MenuButtonsParentPath}', aborting UI modifications!"
-            );
+            )
+        )
+        {
             return null;
         }
 
-        Transform originalContinueButton = menuButtonsParent.Find(
-            UIConstants.ContinueObjectNameAndLabel
-        );
-        if (originalContinueButton == null)
-        {
-            Melon<Main>.Logger.Error(
+        if (
+            !UIHelper.TryFindChild(
+                menuButtonsParent,
+                UIConstants.ContinueObjectNameAndLabel,
+                out Transform originalContinueButton,
                 $"Could not find the original '{UIConstants.ContinueObjectNameAndLabel}' button object, aborting UI modifications!"
-            );
+            )
+        )
+        {
             return null;
         }
 
@@ -92,58 +96,83 @@ internal static class MenuSetup
 
     private static void PositionButtonsAndOffsetSiblings(MenuButtons menuButtons)
     {
-        RectTransform loadGameRect =
-            menuButtons.LoadGameButton.gameObject.GetComponent<RectTransform>();
-        RectTransform newContinueRect =
-            menuButtons.ContinueButton.gameObject.GetComponent<RectTransform>();
-        Transform parentTransform = menuButtons.LoadGameButton.gameObject.transform.parent;
-        if (loadGameRect == null || newContinueRect == null || parentTransform == null)
+        if (
+            !TryGetRects(
+                menuButtons,
+                out RectTransform loadGameRect,
+                out RectTransform continueRect,
+                out Transform parentTransform,
+                out int originalIndex
+            )
+        )
         {
-            Melon<Main>.Logger.Error(
-                "Could not get RectTransforms or parent for positioning. Destroying new button."
-            );
             Object.Destroy(menuButtons.ContinueButton.gameObject);
             return;
         }
 
-        // 1. Store the original position and sibling index of the button that will be shifted down.
-        Vector2 originalButtonPos = loadGameRect.anchoredPosition;
-        int originalButtonSiblingIndex =
-            menuButtons.LoadGameButton.gameObject.transform.GetSiblingIndex();
+        float verticalOffset = continueRect.rect.height;
+        Vector2 originalPosition = loadGameRect.anchoredPosition;
 
-        // 2. Position the new "Continue" button (menuButtons.ContinueButton.gameObject) at this stored original position and index.
-        newContinueRect.anchoredPosition = originalButtonPos;
-        menuButtons.ContinueButton.gameObject.transform.SetSiblingIndex(originalButtonSiblingIndex);
-
-        // 3. Position the "Load Game" button (menuButtons.LoadGameButton.gameObject) below the new "Continue" button.
-        loadGameRect.anchoredPosition = new Vector2(
-            newContinueRect.anchoredPosition.x, // Use the new button's X for consistency
-            newContinueRect.anchoredPosition.y - newContinueRect.rect.height // Place it one button-height below the new "Continue"
-        );
-        menuButtons.LoadGameButton.gameObject.transform.SetSiblingIndex(
-            originalButtonSiblingIndex + 1
+        PlaceButton(menuButtons.ContinueButton.gameObject, continueRect, originalPosition, originalIndex);
+        PlaceButton(
+            menuButtons.LoadGameButton.gameObject,
+            loadGameRect,
+            originalPosition + new Vector2(0f, -verticalOffset),
+            originalIndex + 1
         );
 
-        // 4. Offset subsequent siblings that come AFTER the "Load Game" button (menuButtons.LoadGameButton.gameObject) in the new hierarchy.
-        for (int i = originalButtonSiblingIndex + 2; i < parentTransform.childCount; i++)
+        OffsetRemainingSiblings(parentTransform, originalIndex + 2, verticalOffset);
+        Melon<Main>.Logger.Msg(
+            $"Positioned new '{UIConstants.ContinueObjectNameAndLabel}' at original spot, shifted '{UIConstants.LoadGameObjectName}' ({UIConstants.LoadGameLabel}) below it, and offset subsequent buttons."
+        );
+    }
+
+    private static bool TryGetRects(
+        MenuButtons menuButtons,
+        out RectTransform loadGameRect,
+        out RectTransform continueRect,
+        out Transform parentTransform,
+        out int originalIndex
+    )
+    {
+        loadGameRect = menuButtons.LoadGameButton.gameObject.GetComponent<RectTransform>();
+        continueRect = menuButtons.ContinueButton.gameObject.GetComponent<RectTransform>();
+        parentTransform = menuButtons.LoadGameButton.gameObject.transform.parent;
+        originalIndex = menuButtons.LoadGameButton.gameObject.transform.GetSiblingIndex();
+        if (loadGameRect != null && continueRect != null && parentTransform != null)
+        {
+            return true;
+        }
+
+        Melon<Main>.Logger.Error(
+            "Could not get RectTransforms or parent for positioning. Destroying new button."
+        );
+        return false;
+    }
+
+    private static void PlaceButton(
+        GameObject buttonObject,
+        RectTransform rectTransform,
+        Vector2 anchoredPosition,
+        int siblingIndex
+    )
+    {
+        rectTransform.anchoredPosition = anchoredPosition;
+        buttonObject.transform.SetSiblingIndex(siblingIndex);
+    }
+
+    private static void OffsetRemainingSiblings(Transform parentTransform, int startIndex, float offset)
+    {
+        for (int i = startIndex; i < parentTransform.childCount; i++)
         {
             Transform sibling = parentTransform.GetChild(i);
             if (sibling.GetComponent<RectTransform>() is RectTransform siblingRect)
             {
                 siblingRect.anchoredPosition = new Vector2(
                     siblingRect.anchoredPosition.x,
-                    siblingRect.anchoredPosition.y - newContinueRect.rect.height
+                    siblingRect.anchoredPosition.y - offset
                 );
             }
-
-#if DEBUG
-            Melon<Main>.Logger.Msg(
-                $"Offset button '{sibling.name}' (index {i}) by -{newContinueRect.rect.height} on Y axis because the '{UIConstants.LoadGameLabel}' button was shifted down."
-            );
-#endif
         }
-        Melon<Main>.Logger.Msg(
-            $"Positioned new '{UIConstants.ContinueObjectNameAndLabel}' at original spot, shifted '{UIConstants.LoadGameObjectName}' ({UIConstants.LoadGameLabel}) below it, and offset subsequent buttons."
-        );
     }
 }

@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using HarmonyLib;
 using MelonLoader;
 using UnityEngine;
+using HonestMainMenu.Models;
 #if IL2CPP_BUILD
 using Il2CppScheduleOne.AvatarFramework.Customization;
 using Il2CppScheduleOne.Persistence;
@@ -19,10 +21,23 @@ namespace HonestMainMenu.Patches;
 [HarmonyPatch(typeof(MainMenuRig), "LoadStuff")]
 public static class MainMenuRigLoadStuffPatch
 {
+    private static readonly HashSet<int> LoadedRigs = new();
+    private static readonly object LoadedRigsLock = new();
+
     public static bool Prefix(MainMenuRig __instance)
     {
         try
         {
+            if (!TryBeginRigLoad(__instance))
+            {
+#if DEBUG
+                Melon<Main>.Logger.Msg(
+                    "[MainMenuRigLoadStuffPatch] Duplicate LoadStuff detected for this rig; skipping."
+                );
+#endif
+                return false;
+            }
+
             bool flag = false;
             if (LoadManager.LastPlayedGame != null)
             {
@@ -88,4 +103,59 @@ public static class MainMenuRigLoadStuffPatch
 
         return false; // This tells Harmony to SKIP the original method.
     }
+
+    private static bool TryBeginRigLoad(MainMenuRig rig)
+    {
+        if (rig == null)
+        {
+            return false;
+        }
+
+        int id = rig.GetInstanceID();
+        lock (LoadedRigsLock)
+        {
+            if (LoadedRigs.Contains(id))
+            {
+                return false;
+            }
+
+            LoadedRigs.Add(id);
+            return true;
+        }
+    }
+
+    public static void ResetLoadedRigs()
+    {
+        lock (LoadedRigsLock)
+        {
+            LoadedRigs.Clear();
+        }
+    }
 }
+
+#if IL2CPP_BUILD
+[HarmonyPatch(typeof(Il2CppScheduleOne.Clothing.ClothingUtility), "Awake")]
+public static class ClothingUtilityAwakePatch
+{
+    [HarmonyPrefix]
+    public static void Prefix(Il2CppScheduleOne.Clothing.ClothingUtility __instance)
+    {
+        try
+        {
+            var colors = ClothingDataService.LoadColorData();
+            if (colors == null || colors.Count == 0)
+            {
+                return;
+            }
+
+            ClothingUtilitySeeder.Populate(__instance, colors);
+        }
+        catch (Exception ex)
+        {
+            Melon<Main>.Logger.Warning(
+                $"[ClothingService] Failed to seed ClothingUtility colors before Awake: {ex}"
+            );
+        }
+    }
+}
+#endif
