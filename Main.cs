@@ -46,29 +46,39 @@ public class Main : MelonMod
     {
         if (!sceneName.Equals(UIConstants.MenuSceneName, System.StringComparison.OrdinalIgnoreCase))
         {
-            Melon<Main>.Logger.Msg(
-                $"Scene '{sceneName}' loaded outside the main menu. Stopping menu reactivity and snapshotting live clothing colors."
-            );
-            MenuReactivity.Stop();
-            MainMenuRigLoadStuffPatch.ResetLoadedRigs();
-            var clothingUtility = ClothingUtility.Instance;
-            if (clothingUtility?.ColorDataList != null)
-            {
-                ClothingDataService.ExtractAndSaveColorData(clothingUtility.ColorDataList);
-                Melon<Main>.Logger.Msg(
-                    $"Captured {clothingUtility.ColorDataList.Count} clothing colors before leaving the menu scene."
-                );
-            }
-            else
-            {
-                Melon<Main>.Logger.Warning(
-                    "[Main.OnSceneWasLoaded] ClothingUtility or its ColorDataList is null, skipping color data extraction."
-                );
-            }
+            HandleNonMenuScene(sceneName);
             return;
         }
 
         MainMenuRigLoadStuffPatch.ResetLoadedRigs();
+        HandleMenuScene();
+    }
+
+    private static void HandleNonMenuScene(string sceneName)
+    {
+        Melon<Main>.Logger.Msg(
+            $"Scene '{sceneName}' loaded outside the main menu. Stopping menu reactivity and snapshotting live clothing colors."
+        );
+        MenuReactivity.Stop();
+        MainMenuRigLoadStuffPatch.ResetLoadedRigs();
+        var clothingUtility = ClothingUtility.Instance;
+        if (clothingUtility?.ColorDataList != null)
+        {
+            ClothingDataService.ExtractAndSaveColorData(clothingUtility.ColorDataList);
+            Melon<Main>.Logger.Msg(
+                $"Captured {clothingUtility.ColorDataList.Count} clothing colors before leaving the menu scene."
+            );
+        }
+        else
+        {
+            Melon<Main>.Logger.Warning(
+                "[Main.OnSceneWasLoaded] ClothingUtility or its ColorDataList is null, skipping color data extraction."
+            );
+        }
+    }
+
+    private static void HandleMenuScene()
+    {
         Melon<Main>.Logger.Msg(
             $"Main menu scene ('{UIConstants.MenuSceneName}') loaded. Attempting UI modifications.."
         );
