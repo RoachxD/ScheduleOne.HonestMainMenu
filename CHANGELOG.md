@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Refactored clothing handling into smaller services and cached Mono registry lookups to improve outfit loading reliability across Mono and IL2CPP builds.
+- Reduced duplicate ClothingUtility seeding and log noise during menu load.
+- Tidied scene/menu setup helpers without changing user-facing behavior.
+
 ## [1.1.0] - 2026-01-10
 
 ### Added
@@ -47,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Provided dual build support for both IL2CPP and Mono versions of the game.
 - Configured buttons to be interactable only if save games exist.
 
+[Unreleased]: https://github.com/RoachxD/ScheduleOne.HonestMainMenu/compare/v1.1.0...HEAD
 [1.1.0]: https://github.com/RoachxD/ScheduleOne.HonestMainMenu/releases/tag/v1.1.0
 [1.0.1]: https://github.com/RoachxD/ScheduleOne.HonestMainMenu/releases/tag/v1.0.1
 [1.0.0]: https://github.com/RoachxD/ScheduleOne.HonestMainMenu/releases/tag/v1.0.0
