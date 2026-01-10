@@ -51,6 +51,121 @@ public static class ClothingDataService
         BasicAvatarSettings basicSettings
     )
     {
+#if IL2CPP_BUILD
+        yield return ApplyClothingIl2Cpp(avatar, playerSavePath, basicSettings);
+#else
+        yield return ApplyClothingMono(avatar, playerSavePath, basicSettings);
+#endif
+    }
+
+#if IL2CPP_BUILD
+    private static IEnumerator ApplyClothingIl2Cpp(
+        Avatar avatar,
+        string playerSavePath,
+        BasicAvatarSettings basicSettings
+    )
+    {
+        EnsureClothingUtility();
+        yield return null;
+
+        if (ClothingUtility.Instance == null)
+        {
+            Melon<Main>.Logger.Error(
+                "[ClothingService] Failed to make ClothingUtility available. Aborting colorization."
+            );
+            yield break;
+        }
+
+        string clothingJsonPath = Path.Combine(playerSavePath, "Clothing.json");
+        SerializableClothingFile clothingFile = DeserializeClothingFile(clothingJsonPath);
+        if (clothingFile?.Items == null || clothingFile.Items.Count == 0)
+        {
+            Melon<Main>.Logger.Warning(
+                $"[ClothingService] Clothing file at {clothingJsonPath} did not contain any items. Skipping."
+            );
+            yield break;
+        }
+
+        var playerClothing = avatar.GetComponent<Il2CppScheduleOne.PlayerScripts.PlayerClothing>();
+        if (playerClothing == null)
+        {
+            playerClothing = avatar.gameObject.AddComponent<Il2CppScheduleOne.PlayerScripts.PlayerClothing>();
+        }
+
+        AvatarSettings newAvatarSettings = UnityEngine.Object.Instantiate(
+            basicSettings.GetAvatarSettings()
+        );
+
+        int appliedCount = 0;
+        foreach (var itemJson in clothingFile.Items)
+        {
+            var clothingData = DeserializeClothingItem(itemJson, clothingJsonPath);
+            if (clothingData == null)
+            {
+                continue;
+            }
+
+            if (
+                !string.Equals(
+                    clothingData.DataType,
+                    "ClothingData",
+                    StringComparison.OrdinalIgnoreCase
+                )
+                || !clothingData.TryGetValidColor(out var clothingColor)
+            )
+            {
+                continue;
+            }
+
+            if (
+                !TryResolveClothingDefinition(
+                    clothingData,
+                    out ClothingDefinition def,
+                    out EClothingColor colorEnum
+                )
+            )
+            {
+                Melon<Main>.Logger.Warning(
+                    $"[ClothingService] Clothing item not found in registry: {clothingData.Id} (source: {clothingJsonPath})"
+                );
+                continue;
+            }
+
+            try
+            {
+                var instance = new Il2CppScheduleOne.Clothing.ClothingInstance(def, 1, colorEnum);
+                playerClothing.ApplyClothing(newAvatarSettings, instance);
+                appliedCount++;
+            }
+            catch (Exception ex)
+            {
+                Melon<Main>.Logger.Warning(
+                    $"[ClothingService] Failed to apply clothing '{clothingData.Id}' via PlayerClothing: {ex.Message}"
+                );
+            }
+        }
+
+        if (appliedCount > 0)
+        {
+            avatar.LoadAvatarSettings(newAvatarSettings);
+            Melon<Main>.Logger.Msg(
+                $"[ClothingService] Successfully applied {appliedCount} clothing items to the main menu Avatar."
+            );
+        }
+        else
+        {
+            Melon<Main>.Logger.Warning(
+                "[ClothingService] No valid clothing items were applied to the main menu Avatar."
+            );
+        }
+    }
+#else
+    private static IEnumerator ApplyClothingMono(
+        Avatar avatar,
+        string playerSavePath,
+        BasicAvatarSettings basicSettings
+    )
+    {
         EnsureClothingUtility();
         yield return null; // Wait a frame to ensure utility is ready if it was just created.
 
@@ -84,7 +199,7 @@ public static class ClothingDataService
             );
         }
     }
-
+#endif
     private static bool PopulateClothingSettings(
         AvatarSettings avatarSettings,
         string playerSavePath
@@ -194,8 +309,26 @@ public static class ClothingDataService
             return false;
         }
 
+#if IL2CPP_BUILD
+        var register = FindRegister(clothingData.Id);
+#endif
+
         if (Registry.GetItem(clothingData.Id) is not ClothingDefinition def)
         {
+#if IL2CPP_BUILD
+            LogRegistryStateForDebug(clothingData.Id, register);
+            if (
+                TryApplyRegisterFallback(
+                    avatarSettings,
+                    clothingData,
+                    clothingColor.GetActualColor(),
+                    register
+                )
+            )
+            {
+                return true;
+            }
+#endif
             Melon<Main>.Logger.Warning(
                 $"[ClothingService] Clothing item not found in registry: {clothingData.Id} (source: {sourcePath})"
             );
@@ -606,6 +739,401 @@ public static class ClothingDataService
         return clothingUtility?.ColorDataList != null && clothingUtility.ColorDataList.Count > 0;
     }
 
+#if IL2CPP_BUILD
+    private static bool TryResolveClothingDefinition(
+        SerializableClothingSaveData clothingData,
+        out ClothingDefinition def,
+        out EClothingColor colorEnum
+    )
+    {
+        def = Registry.GetItem(clothingData.Id) as ClothingDefinition;
+        colorEnum = def?.DefaultColor ?? EClothingColor.White;
+
+        if (def != null)
+        {
+            if (clothingData.TryGetValidColor(out var validColor))
+            {
+                colorEnum = validColor;
+            }
+            return true;
+        }
+
+        var register = FindRegister(clothingData.Id);
+        if (register == null)
+        {
+            return false;
+        }
+
+        string resourcePath = NormalizeRegistryAssetPath(register.AssetPath);
+        if (!string.IsNullOrEmpty(resourcePath))
+        {
+            var loaded = Resources.Load<ClothingDefinition>(resourcePath);
+            if (loaded != null)
+            {
+                def = loaded;
+                if (clothingData.TryGetValidColor(out var c1))
+                {
+                    colorEnum = c1;
+                }
+                return true;
+            }
+        }
+
+        if (
+            !string.IsNullOrEmpty(resourcePath)
+            && TryMapItemDefinition(resourcePath, out var avatarPath, out var appType)
+            && ResourceExists(avatarPath)
+        )
+        {
+            def = ScriptableObject.CreateInstance<ClothingDefinition>();
+            def.ClothingAssetPath = avatarPath;
+            def.ApplicationType = appType;
+            def.Colorable = true;
+            if (clothingData.TryGetValidColor(out var c2))
+            {
+                colorEnum = c2;
+            }
+            else
+            {
+                colorEnum = EClothingColor.White;
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    private static Registry.ItemRegister FindRegister(string id)
+    {
+        var registry = Registry.Instance;
+        if (registry?.ItemDictionary == null || string.IsNullOrEmpty(id))
+        {
+            return null;
+        }
+
+        foreach (var kvp in registry.ItemDictionary)
+        {
+            var reg = kvp?.Value;
+            if (reg == null)
+            {
+                continue;
+            }
+
+            string regId = reg.ID;
+            if (string.IsNullOrEmpty(regId))
+            {
+                continue;
+            }
+
+            if (regId.Equals(id, StringComparison.OrdinalIgnoreCase))
+            {
+                return reg;
+            }
+        }
+
+        return null;
+    }
+
+    private static void LogRegistryStateForDebug(string missingId, Registry.ItemRegister register = null)
+    {
+        try
+        {
+            var registry = Registry.Instance;
+            if (registry == null)
+            {
+                Melon<Main>.Logger.Warning("[ClothingService - DEBUG] Registry.Instance is null.");
+                return;
+            }
+
+            var dict = registry.ItemDictionary;
+            if (dict == null)
+            {
+                Melon<Main>.Logger.Warning("[ClothingService - DEBUG] Registry.ItemDictionary is null.");
+                return;
+            }
+
+            Melon<Main>.Logger.Msg(
+                $"[ClothingService - DEBUG] Registry.ItemDictionary count: {dict.Count}"
+            );
+
+            var ids = new List<string>();
+            Registry.ItemRegister matchingRegister = null;
+            foreach (var kvp in dict)
+            {
+                var reg = kvp.Value;
+                string id = reg?.ID;
+                if (!string.IsNullOrEmpty(id))
+                {
+                    ids.Add(id);
+                    if (
+                        matchingRegister == null
+                        && missingId != null
+                        && id.Equals(missingId, StringComparison.OrdinalIgnoreCase)
+                    )
+                    {
+                        matchingRegister = reg;
+                    }
+                }
+            }
+
+            if (ids.Count > 0)
+            {
+                Melon<Main>.Logger.Msg(
+                    "[ClothingService - DEBUG] Sample registry IDs: "
+                    + string.Join(", ", ids.Take(10))
+                );
+
+                var matches = ids
+                    .Where(id =>
+                        id.IndexOf(missingId ?? string.Empty, StringComparison.OrdinalIgnoreCase) >= 0
+                    )
+                    .Take(5)
+                    .ToArray();
+                if (matches.Length > 0)
+                {
+                    Melon<Main>.Logger.Msg(
+                        $"[ClothingService - DEBUG] IDs matching '{missingId}': {string.Join(", ", matches)}"
+                    );
+                }
+            }
+
+            if (matchingRegister != null)
+            {
+                var def = matchingRegister.Definition;
+                Melon<Main>.Logger.Msg(
+                    def != null
+                        ? $"[ClothingService - DEBUG] Register for '{missingId}' has definition type '{def.GetType().Name}'."
+                        : $"[ClothingService - DEBUG] Register for '{missingId}' has NULL definition."
+                );
+                Melon<Main>.Logger.Msg(
+                    $"[ClothingService - DEBUG] Register AssetPath: {matchingRegister.AssetPath ?? "<null>"}"
+                );
+            }
+            else if (register != null)
+            {
+                Melon<Main>.Logger.Msg(
+                    $"[ClothingService - DEBUG] Provided register has definition type '{register.Definition?.GetType().Name ?? "null"}' and AssetPath '{register.AssetPath ?? "<null>"}'."
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            Melon<Main>.Logger.Error($"[ClothingService - DEBUG] Failed to inspect registry: {ex}");
+        }
+    }
+
+    private static string NormalizeRegistryAssetPath(string assetPath)
+    {
+        if (string.IsNullOrWhiteSpace(assetPath))
+        {
+            return null;
+        }
+
+        string normalized = assetPath.Replace("\\", "/");
+        const string prefix = "Assets/Resources/";
+        if (normalized.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized.Substring(prefix.Length);
+        }
+
+        const string suffix = ".asset";
+        if (normalized.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized.Substring(0, normalized.Length - suffix.Length);
+        }
+
+        return normalized.Trim('/');
+    }
+
+    private static bool TryMapItemDefinition(
+        string normalizedPath,
+        out string avatarPath,
+        out EClothingApplicationType applicationType
+    )
+    {
+        avatarPath = null;
+        applicationType = EClothingApplicationType.Accessory;
+
+        if (string.IsNullOrWhiteSpace(normalizedPath))
+        {
+            return false;
+        }
+
+        string[] segments = normalizedPath.Split(
+            new[] { '/' },
+            StringSplitOptions.RemoveEmptyEntries
+        );
+        if (segments.Length < 3 || !segments[0].Equals("Clothing", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        // Clothing/Accessories/<Category>/<Item>
+        if (
+            segments.Length >= 4
+            && segments[1].Equals("Accessories", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            string category = segments[2];
+            string item = segments[3];
+            avatarPath = $"Avatar/Accessories/{category}/{item}/{item}";
+            applicationType = EClothingApplicationType.Accessory;
+            return true;
+        }
+
+        // Clothing/<Category>/<Item>
+        string simpleCategory = segments[1];
+        string itemName = segments[2];
+        if (IsAccessoryCategory(simpleCategory))
+        {
+            avatarPath = $"Avatar/Accessories/{simpleCategory}/{itemName}/{itemName}";
+            applicationType = EClothingApplicationType.Accessory;
+            return true;
+        }
+
+        applicationType = EClothingApplicationType.BodyLayer;
+        avatarPath = $"Avatar/Layers/{simpleCategory}/{itemName}";
+        return true;
+    }
+
+    private static bool IsAccessoryCategory(string category)
+    {
+        return category.Equals("Head", StringComparison.OrdinalIgnoreCase)
+            || category.Equals("Face", StringComparison.OrdinalIgnoreCase)
+            || category.Equals("Feet", StringComparison.OrdinalIgnoreCase)
+            || category.Equals("Hands", StringComparison.OrdinalIgnoreCase)
+            || category.Equals("Neck", StringComparison.OrdinalIgnoreCase)
+            || category.Equals("Back", StringComparison.OrdinalIgnoreCase)
+            || category.Equals("Accessory", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ResourceExists(string resourcePath)
+    {
+        if (string.IsNullOrEmpty(resourcePath))
+        {
+            return false;
+        }
+
+        var loaded = Resources.Load<UnityEngine.Object>(resourcePath);
+        return loaded != null;
+    }
+
+    private static bool TryApplyRegisterFallback(
+        AvatarSettings avatarSettings,
+        SerializableClothingSaveData clothingData,
+        Color finalColor,
+        Registry.ItemRegister register
+    )
+    {
+        register ??= FindRegister(clothingData.Id);
+        if (register == null)
+        {
+            return false;
+        }
+
+        string resourcePath = NormalizeRegistryAssetPath(register.AssetPath);
+        if (string.IsNullOrEmpty(resourcePath))
+        {
+            return false;
+        }
+
+        var definition = register.Definition;
+        ClothingDefinition clothingDefinition = definition as ClothingDefinition;
+        if (clothingDefinition != null)
+        {
+            ApplyDefinitionToAvatar(avatarSettings, clothingDefinition, finalColor);
+            Melon<Main>.Logger.Msg(
+                $"[ClothingService] Applied '{clothingData.Id}' via register ClothingDefinition fallback (path={clothingDefinition.ClothingAssetPath}, type={clothingDefinition.ApplicationType})."
+            );
+            return true;
+        }
+
+        ClothingDefinition loadedDef = Resources.Load<ClothingDefinition>(resourcePath);
+        if (loadedDef != null)
+        {
+            ApplyDefinitionToAvatar(avatarSettings, loadedDef, finalColor);
+            Melon<Main>.Logger.Msg(
+                $"[ClothingService] Applied '{clothingData.Id}' via resource ClothingDefinition (path={loadedDef.ClothingAssetPath}, type={loadedDef.ApplicationType})."
+            );
+            return true;
+        }
+
+        if (
+            !TryMapItemDefinition(
+                resourcePath,
+                out string avatarPath,
+                out EClothingApplicationType applicationType
+            )
+        )
+        {
+            return false;
+        }
+
+        if (!ResourceExists(avatarPath))
+        {
+            return false;
+        }
+
+        if (applicationType == EClothingApplicationType.BodyLayer)
+        {
+            avatarSettings.BodyLayerSettings.Add(
+                new AvatarSettings.LayerSetting
+                {
+                    layerPath = avatarPath,
+                    layerTint = finalColor
+                }
+            );
+        }
+        else
+        {
+            avatarSettings.AccessorySettings.Add(
+                new AvatarSettings.AccessorySetting
+                {
+                    path = avatarPath,
+                    color = finalColor
+                }
+            );
+        }
+
+        Melon<Main>.Logger.Msg(
+            $"[ClothingService] Applied '{clothingData.Id}' via ItemDefinition fallback (path={avatarPath}, type={applicationType})."
+        );
+        return true;
+    }
+
+    private static void ApplyDefinitionToAvatar(
+        AvatarSettings avatarSettings,
+        ClothingDefinition def,
+        Color finalColor
+    )
+    {
+        if (def == null)
+        {
+            return;
+        }
+
+        if (def.ApplicationType == EClothingApplicationType.BodyLayer)
+        {
+            avatarSettings.BodyLayerSettings.Add(
+                new AvatarSettings.LayerSetting
+                {
+                    layerPath = def.ClothingAssetPath,
+                    layerTint = finalColor
+                }
+            );
+        }
+        else if (def.ApplicationType == EClothingApplicationType.Accessory)
+        {
+            avatarSettings.AccessorySettings.Add(
+                new AvatarSettings.AccessorySetting
+                {
+                    path = def.ClothingAssetPath,
+                    color = finalColor
+                }
+            );
+        }
+    }
+#endif
     private static void ResetClothingItemCache()
     {
         ClothingItemCacheStore.Clear();
