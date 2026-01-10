@@ -83,6 +83,10 @@
       <HintPath>$(ScheduleOneGameDir)\MelonLoader\net6\Il2CppInterop.Runtime.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Il2CppFishNet.Runtime">
+      <HintPath>$(ScheduleOneGameDir)\MelonLoader\Il2CppAssemblies\Il2CppFishNet.Runtime.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Il2Cppmscorlib">
       <HintPath>$(ScheduleOneGameDir)\MelonLoader\Il2CppAssemblies\Il2Cppmscorlib.dll</HintPath>
       <Private>False</Private>
