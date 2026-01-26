@@ -25,6 +25,8 @@ public class Main : MelonMod
 #endif
         Melon<Main>.Logger.Msg($"Honest Main Menu ({buildType}) initializing..");
 
+        ModConfig.Initialize();
+
         try
         {
             HarmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
@@ -83,6 +85,29 @@ public class Main : MelonMod
             $"Main menu scene ('{UIConstants.MenuSceneName}') loaded. Attempting UI modifications.."
         );
 
+        // Try auto-start if configured
+        if (ModConfig.IsAutoStartEnabled && !AutoStartService.HasAttemptedAutoStart)
+        {
+            MelonCoroutines.Start(AutoStartWithFallback());
+            return;
+        }
+
+        SetupMenuUI();
+    }
+
+    private static System.Collections.IEnumerator AutoStartWithFallback()
+    {
+        yield return AutoStartService.TryAutoStart();
+
+        if (!AutoStartService.AutoStartSucceeded)
+        {
+            Melon<Main>.Logger.Msg("Auto-start did not succeed, setting up main menu UI.");
+            SetupMenuUI();
+        }
+    }
+
+    private static void SetupMenuUI()
+    {
         GameObject menuRootObject = GameObject.Find(UIConstants.MainMenuObjectName);
         if (menuRootObject == null)
         {
