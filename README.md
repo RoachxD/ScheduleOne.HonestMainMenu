@@ -18,6 +18,7 @@ This mod slaps some honesty into the main menu, offering a true "Continue" exper
 ## Features
 
 * **True "Continue" Functionality:** Adds a new, dedicated "Continue" button that *actually* loads your most recently played game session. Revolutionary, I know.
+* **Auto-Start Save:** Configure a specific save name to automatically load when the game starts, bypassing the main menu entirely. Perfect for mod development or when you just want to jump straight into the action.
 * **Repurposed "Load Game" Button:** The original "Continue" button (the one that masqueraded as a "Load Game" button) is now properly labeled "Load Game". It still opens the save selection screen, but at least it's honest about it.
 * **Updated Load Screen Title:** The title of the screen you get when you click "Load Game" now says "Load Game" instead of "Continue". Because clarity is kindness.
 * **Corrected UI Prompts:** The misleading "RMB" indicator from the main menu's back button prompt has been banished. Escape key is your only friend here.
@@ -56,7 +57,28 @@ Once you actually *see* the main menu, the mod rolls up its sleeves:
 
 ## Configuration
 
-This mod is a simple creature. It has no external configuration options. What you see is what you get.
+Configuration options are available via the MelonLoader preferences system. After running the game once with the mod installed, you can find the configuration file at:
+
+`<Game Directory>/UserData/MelonPreferences.cfg`
+
+### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `AutoStartSaveName` | (empty) | The save **folder name** to auto-load on startup (e.g., `SaveGame_1`). |
+
+### Example Configuration
+
+To auto-start a save, use the **folder name** (not the in-game name):
+
+```ini
+[HonestMainMenu]
+AutoStartSaveName = "SaveGame_1"
+```
+
+You can find your save folder names at: `%APPDATA%\..\LocalLow\TVGS\Schedule I\Saves\`
+
+**Note:** Auto-start only triggers once per game launch. If you return to the main menu from a game session, you'll see the normal menu. If the specified save doesn't exist, the mod will fall back to showing the main menu normally.
 
 ## What's Next?
 
